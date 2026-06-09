@@ -1,0 +1,54 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SL Link Generator</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 40px; background: #f0f2f5; }
+        .box { background: white; padding: 30px; border-radius: 8px; max-width: 500px; margin: 0 auto; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        input { width: 100%; padding: 10px; margin: 10px 0; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
+        button { background: #38bdf8; color: white; border: none; padding: 12px 20px; width: 100%; border-radius: 4px; cursor: pointer; font-size: 16px; }
+        #result { margin-top: 20px; padding: 15px; background: #e0f2fe; word-break: break-all; border-radius: 4px; display: none; }
+    </style>
+</head>
+<body>
+    <div class="box">
+        <h2>🔗 Generate Links for Telegram</h2>
+        <p>Use this tool to generate the links you post in your Telegram channel.</p>
+
+        <label>Your Landing Page URL (Where you host it):</label>
+        <input type="text" id="baseUrl" placeholder="https://your-website.com/" value="https://your-website.com/">
+
+        <label>Target Group/Channel Link:</label>
+        <input type="text" id="targetUrl" placeholder="https://t.me/some_group">
+
+        <button onclick="generateLink()">Generate Link</button>
+
+        <div id="result"></div>
+    </div>
+
+    <script>
+        function generateLink() {
+            const base = document.getElementById('baseUrl').value;
+            const target = document.getElementById('targetUrl').value;
+
+            if (!base || !target) {
+                alert("Please fill in both fields");
+                return;
+            }
+
+            // Encode the target URL in Base64
+            const encodedTarget = btoa(target);
+
+            // Create the final URL with the ?dest= parameter
+            const finalUrl = `${base}${base.includes('?') ? '&' : '?'}dest=${encodedTarget}`;
+
+            const resultDiv = document.getElementById('result');
+            resultDiv.style.display = 'block';
+            resultDiv.innerHTML = `<strong>Copy this link to your Telegram channel:</strong><br><br><a href="${finalUrl}" target="_blank">${finalUrl}</a>`;
+        }
+    </script>
+</body>
+</html>
