@@ -1,0 +1,242 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SL Link Hub - Secure Gateway</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap');
+
+        :root { 
+            --primary: #38bdf8; 
+            --secondary: #818cf8;
+            --bg: #0f172a; 
+            --text: #f8fafc; 
+        }
+
+        body { 
+            margin: 0; 
+            padding: 0; 
+            font-family: 'Poppins', sans-serif; 
+            background: var(--bg); 
+            color: var(--text); 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            min-height: 100vh; 
+            overflow: hidden; 
+        }
+
+        /* Animated Background */
+        .bg-animation { 
+            position: absolute; 
+            top: 0; left: 0; width: 100%; height: 100%; 
+            z-index: -1; 
+            background: linear-gradient(45deg, #0f172a, #1e293b, #0f172a, #312e81); 
+            background-size: 400% 400%; 
+            animation: gradientBG 15s ease infinite; 
+        }
+
+        @keyframes gradientBG { 
+            0% { background-position: 0% 50%; } 
+            50% { background-position: 100% 50%; } 
+            100% { background-position: 0% 50%; } 
+        }
+
+        /* Glassmorphism Container */
+        .container { 
+            background: rgba(255, 255, 255, 0.03); 
+            backdrop-filter: blur(16px); 
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255,255,255,0.05); 
+            border-radius: 24px; 
+            padding: 40px 30px; 
+            text-align: center; 
+            max-width: 400px; 
+            width: 85%; 
+            box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5); 
+            animation: fadeIn 1s ease-out; 
+        }
+
+        @keyframes fadeIn { 
+            from { opacity: 0; transform: translateY(30px); } 
+            to { opacity: 1; transform: translateY(0); } 
+        }
+
+        /* Typography */
+        h1 { 
+            font-size: 32px; 
+            font-weight: 700; 
+            margin-bottom: 10px; 
+            margin-top: 0;
+            background: -webkit-linear-gradient(45deg, var(--primary), var(--secondary)); 
+            -webkit-background-clip: text; 
+            -webkit-text-fill-color: transparent; 
+        }
+
+        p { 
+            color: #94a3b8; 
+            margin-bottom: 20px; 
+            font-size: 15px; 
+            line-height: 1.6; 
+        }
+
+        /* Button Styles */
+        .btn { 
+            background: linear-gradient(90deg, var(--primary), var(--secondary)); 
+            color: white; 
+            border: none; 
+            padding: 16px 32px; 
+            border-radius: 50px; 
+            font-size: 16px; 
+            font-weight: 600; 
+            cursor: pointer; 
+            transition: all 0.3s ease; 
+            width: 100%; 
+            box-sizing: border-box;
+            box-shadow: 0 4px 15px rgba(56, 189, 248, 0.3);
+            margin-bottom: 15px;
+        }
+
+        .btn:hover { 
+            transform: translateY(-3px); 
+            box-shadow: 0 10px 25px -10px rgba(129, 140, 248, 0.8); 
+        }
+
+        .btn:active { 
+            transform: translateY(0); 
+        }
+
+        .btn-success {
+            background: linear-gradient(90deg, #10b981, #059669);
+            box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);
+            display: none;
+        }
+
+        .btn-success:hover {
+            box-shadow: 0 10px 25px -10px rgba(16, 185, 129, 0.8);
+        }
+
+        /* Status Message */
+        .status-msg { 
+            font-size: 14px; 
+            font-weight: 500; 
+            min-height: 40px;
+            margin-top: 10px;
+            color: #94a3b8;
+        }
+
+        .error-text {
+            color: #ef4444;
+            animation: shake 0.4s ease-in-out;
+        }
+
+        .success-text {
+            color: #10b981;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            50% { transform: translateX(5px); }
+            75% { transform: translateX(-5px); }
+        }
+    </style>
+</head>
+<body>
+    <div class="bg-animation"></div>
+
+    <div class="container">
+        <h1>SL Link Hub</h1>
+        <p>Click the button below to verify. You must view the sponsor page for at least 10 seconds to unlock your link.</p>
+
+        <!-- Step 1: Verification Button (Ad Link) -->
+        <button id="unlockBtn" class="btn">Verify to Unlock Link</button>
+
+        <!-- Step 2: Final Destination Button -->
+        <!-- Replace YOUR_TELEGRAM_LINK_HERE with your actual channel/group link -->
+        <a href="https://t.me/sllinkhub1" id="finalBtn" class="btn btn-success" style="text-decoration: none; display: none;">Get Telegram Link</a>
+
+        <!-- Messaging Area -->
+        <div id="statusMessage" class="status-msg"></div>
+    </div>
+
+    <script>
+        // Array of your direct links
+        const directLinks = [
+            'YOUR_ADSTERRA_DIRECT_LINK_1',
+            'YOUR_MONETAG_DIRECT_LINK_1',
+            'YOUR_ADSTERRA_DIRECT_LINK_2',
+            'YOUR_MONETAG_DIRECT_LINK_2'
+        ];
+
+        // State Variables
+        let isHuman = false;
+        let adOpenedTime = 0;
+        let waitingForUser = false;
+
+        const unlockBtn = document.getElementById('unlockBtn');
+        const finalBtn = document.getElementById('finalBtn');
+        const statusMsg = document.getElementById('statusMessage');
+
+        // New Invisible Bot Protection: Mouse Hover & Touch Detection
+        // Bots won't trigger real mouseenter or touchstart events natively.
+        const verifyHuman = () => { isHuman = true; };
+        unlockBtn.addEventListener('mouseenter', verifyHuman, {once: true});
+        unlockBtn.addEventListener('touchstart', verifyHuman, {once: true});
+
+        // Click Logic for Unlock Button
+        unlockBtn.addEventListener('click', function(e) {
+            // Check if human interaction occurred and click is trusted
+            if (!isHuman || !e.isTrusted) {
+                statusMsg.innerText = "Bot detected. Please interact with the page normally.";
+                statusMsg.className = "status-msg error-text";
+                e.preventDefault();
+                return;
+            }
+
+            // Pick random ad link
+            const randomIndex = Math.floor(Math.random() * directLinks.length);
+            const selectedLink = directLinks[randomIndex];
+
+            // Open ad link in new tab
+            window.open(selectedLink, '_blank');
+
+            // Record time and update UI
+            adOpenedTime = Date.now();
+            waitingForUser = true;
+
+            this.innerText = 'Checking...';
+            statusMsg.innerText = "Waiting... Please stay on the opened page for 10-15 seconds.";
+            statusMsg.className = "status-msg";
+        });
+
+        // Listen for when the user comes back to our tab
+        document.addEventListener('visibilitychange', () => {
+            // When the user returns to this tab and we are waiting for them
+            if (document.visibilityState === 'visible' && waitingForUser) {
+                const timeSpentAway = Date.now() - adOpenedTime;
+
+                if (timeSpentAway < 10000) { 
+                    // Less than 10 seconds spent away
+                    statusMsg.innerText = "Please spend time and at least you should wait 10 - 15 seconds!";
+                    statusMsg.className = "status-msg error-text";
+                    unlockBtn.innerText = 'Try Again';
+                    waitingForUser = false; // Reset so they have to click again
+                } else {
+                    // Success (10+ seconds spent)
+                    statusMsg.innerText = "Verification successful! Your link is unlocked.";
+                    statusMsg.className = "status-msg success-text";
+
+                    // Hide ad button, show final destination button
+                    unlockBtn.style.display = "none";
+                    finalBtn.style.display = "block";
+
+                    waitingForUser = false;
+                }
+            }
+        });
+    </script>
+</body>
+</html>
