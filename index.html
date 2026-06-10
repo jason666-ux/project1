@@ -163,8 +163,7 @@
     <div class="bg-animation"></div>
 
     <div class="container">
-        <!-- Replaced Base64 with a standard external file reference -->
-        <img src="logo.jpg" id="logoImg" alt="SL Link Hub" class="channel-logo">
+        <img src="logo.jpg" id="logoImg" alt="SL Link Hub" class="channel-logo" onerror="this.style.display='none'">
 
         <h1>SL Link Hub</h1>
         <p>Click the button below to verify. You must view the sponsor page for at least 10 seconds to unlock your target link.</p>
@@ -178,7 +177,7 @@
     <script>
         const directLinks = [
             'YOUR_ADSTERRA_DIRECT_LINK_1',
-            'YOUR_MONETAG_DIRECT_LINK_1'
+            'YOUR_MONETAG_DIRECT_LINK_1',
         ];
 
         const unlockBtn = document.getElementById('unlockBtn');
@@ -187,7 +186,7 @@
 
         const urlParams = new URLSearchParams(window.location.search);
         const encodedDest = urlParams.get('dest');
-        let targetUrl = "https://t.me/sllinkhub1";
+        let targetUrl = "https://t.me/sllinkhub1"; // Default fallback
 
         if (encodedDest) {
             try {
@@ -196,7 +195,14 @@
                 console.error("Invalid destination parameter.");
             }
         }
-        finalBtn.href = targetUrl; 
+
+        // --- FIX: Ensure the button actually goes to the target ---
+        // Instead of relying purely on finalBtn.href (which some browsers block if opened in new tabs incorrectly), 
+        // we override the click event to force the redirect.
+        finalBtn.addEventListener('click', function(e) {
+            e.preventDefault(); // Stop normal href behavior
+            window.location.href = targetUrl; // Force the current tab to go to the target
+        });
 
         let isHuman = false;
         let adOpenedTime = 0;
@@ -217,13 +223,14 @@
             const randomIndex = Math.floor(Math.random() * directLinks.length);
             const selectedLink = directLinks[randomIndex];
 
+            // Open the Adsterra/Monetag link in a NEW tab
             window.open(selectedLink, '_blank');
 
             adOpenedTime = Date.now();
             waitingForUser = true;
 
             this.innerText = 'Checking...';
-            statusMsg.innerText = "Waiting... Please stay on the opened page for 10 seconds.";
+            statusMsg.innerText = "Waiting... Please stay on the opened page for 10 - 15 seconds.";
             statusMsg.className = "status-msg";
         });
 
@@ -244,6 +251,10 @@
 
                     unlockBtn.style.display = "none";
                     finalBtn.style.display = "block";
+
+                    // --- AUTO REDIRECT OPTION ---
+                    // Uncomment the line below if you want them to instantly jump to the Telegram group without clicking the green button
+                    // window.location.href = targetUrl; 
 
                     waitingForUser = false;
                 }
