@@ -6,48 +6,92 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SL Link Generator</title>
     <style>
-        body { font-family: Arial, sans-serif; padding: 40px; background: #f0f2f5; }
-        .box { background: white; padding: 30px; border-radius: 8px; max-width: 500px; margin: 0 auto; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
-        input { width: 100%; padding: 10px; margin: 10px 0; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
-        button { background: #38bdf8; color: white; border: none; padding: 12px 20px; width: 100%; border-radius: 4px; cursor: pointer; font-size: 16px; }
-        #result { margin-top: 20px; padding: 15px; background: #e0f2fe; word-break: break-all; border-radius: 4px; display: none; }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; padding: 20px; background: #f0f2f5; margin: 0; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
+        .box { background: white; padding: 30px; border-radius: 12px; max-width: 450px; width: 100%; box-shadow: 0 10px 25px rgba(0,0,0,0.05); box-sizing: border-box; }
+        h2 { margin-top: 0; color: #1a1a1a; font-size: 24px; text-align: center; }
+        p { color: #666; font-size: 14px; text-align: center; margin-bottom: 25px; }
+        label { display: block; margin-top: 15px; font-weight: bold; color: #333; font-size: 14px; }
+        input { width: 100%; padding: 12px; margin: 8px 0 15px 0; border: 1px solid #d1d5db; border-radius: 8px; box-sizing: border-box; font-size: 15px; transition: border 0.3s; }
+        input:focus { outline: none; border-color: #38bdf8; box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.2); }
+        button { background: #38bdf8; color: white; border: none; padding: 14px; width: 100%; border-radius: 8px; cursor: pointer; font-size: 16px; font-weight: bold; transition: background 0.3s; }
+        button:hover { background: #0284c7; }
+        #result { margin-top: 20px; padding: 20px; background: #f0fdf4; border-radius: 8px; display: none; border: 1px solid #bbf7d0; text-align: center; }
+        .copy-btn { margin-top: 15px; background: #10b981; }
+        .copy-btn:hover { background: #059669; }
+        .final-link { font-weight: bold; font-size: 16px; color: #047857; word-break: break-all; margin: 15px 0; display: block; text-decoration: none; }
     </style>
 </head>
 <body>
     <div class="box">
-        <h2>🔗 Generate Links for Telegram</h2>
-        <p>Use this tool to generate the links you post in your Telegram channel.</p>
+        <h2>🔗 Online Link Generator</h2>
+        <p>Create your scrambled links from anywhere.</p>
 
-        <label>Your Landing Page URL (Where you host it):</label>
-        <input type="text" id="baseUrl" placeholder="https://your-website.com/" value="https://your-website.com/">
+        <label>Your Website URL:</label>
+        <input type="text" id="baseUrl" placeholder="https://username.github.io/link-hub" value="">
 
-        <label>Target Group/Channel Link:</label>
-        <input type="text" id="targetUrl" placeholder="https://t.me/some_group">
+        <label>Target Telegram Link:</label>
+        <input type="text" id="targetUrl" placeholder="https://t.me/+InviteCode123">
 
         <button onclick="generateLink()">Generate Link</button>
 
-        <div id="result"></div>
+        <div id="result">
+            <span style="color: #065f46; font-size: 14px;">✅ Link generated successfully!</span>
+            <a href="#" id="finalUrlDisplay" class="final-link" target="_blank"></a>
+            <button class="copy-btn" onclick="copyToClipboard()">Copy to Clipboard</button>
+        </div>
     </div>
 
     <script>
+        // Auto-fill the base URL if this is hosted on the same domain!
+        window.onload = function() {
+            const currentUrl = window.location.href;
+            if (currentUrl.includes('github.io') || currentUrl.includes('vercel.app')) {
+                // Remove /generator.html from the end
+                document.getElementById('baseUrl').value = currentUrl.substring(0, currentUrl.lastIndexOf('/'));
+            }
+        };
+
+        let generatedUrl = "";
+
+        function scramble(str) {
+            return str.split('').reverse().map(c => c === c.toUpperCase() ? c.toLowerCase() : c.toUpperCase()).join('');
+        }
+
         function generateLink() {
-            const base = document.getElementById('baseUrl').value;
-            const target = document.getElementById('targetUrl').value;
+            let base = document.getElementById('baseUrl').value.trim();
+            let target = document.getElementById('targetUrl').value.trim();
 
             if (!base || !target) {
                 alert("Please fill in both fields");
                 return;
             }
 
-            // Encode the target URL in Base64
-            const encodedTarget = btoa(target);
+            if (base.endsWith('/')) base = base.slice(0, -1);
 
-            // Create the final URL with the ?dest= parameter
-            const finalUrl = `${base}${base.includes('?') ? '&' : '?'}dest=${encodedTarget}`;
+            let code = target.replace(/^https?:\/\/(t\.me|telegram\.me)\//i, '');
+            code = code.replace(/^(t\.me|telegram\.me)\//i, '');
+
+            let scrambled = scramble(code);
+            generatedUrl = `${base}/#${scrambled}`;
 
             const resultDiv = document.getElementById('result');
+            const display = document.getElementById('finalUrlDisplay');
+
+            display.href = generatedUrl;
+            display.innerText = generatedUrl;
             resultDiv.style.display = 'block';
-            resultDiv.innerHTML = `<strong>Copy this link to your Telegram channel:</strong><br><br><a href="${finalUrl}" target="_blank">${finalUrl}</a>`;
+        }
+
+        function copyToClipboard() {
+            navigator.clipboard.writeText(generatedUrl).then(() => {
+                const btn = document.querySelector('.copy-btn');
+                btn.innerText = "✓ Copied!";
+                btn.style.background = "#059669";
+                setTimeout(() => {
+                    btn.innerText = "Copy to Clipboard";
+                    btn.style.background = "#10b981";
+                }, 2000);
+            });
         }
     </script>
 </body>
